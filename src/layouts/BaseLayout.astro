@@ -1,0 +1,126 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  lang?: 'en' | 'cs';
+  canonicalSlug?: string;
+  currentPath?: string;
+}
+
+const {
+  title,
+  description = 'Specialty Coffee Knowledge Base & Prague Guide. SSG, Zero-JS by default with multi-language i18n support.',
+  image = '/favicon.svg',
+  lang = 'en',
+  currentPath,
+} = Astro.props;
+
+const siteUrl = Astro.site ?? new URL('https://example.com');
+const pathname = Astro.url.pathname;
+
+// Вычисляем чистый путь без префикса локали (/en или /cs)
+let cleanPath = currentPath || pathname.replace(/^\/(en|cs)(\/|$)/, '/');
+if (!cleanPath.startsWith('/')) {
+  cleanPath = '/' + cleanPath;
+}
+const normalizedPath = cleanPath === '/' ? '' : cleanPath;
+
+const enUrl = new URL(`/en${normalizedPath}`, siteUrl);
+const csUrl = new URL(`/cs${normalizedPath}`, siteUrl);
+const canonicalUrl = new URL(pathname, siteUrl);
+
+const nav = lang === 'cs'
+  ? {
+      footerCopy: '© 2026 Výběrová káva & Průvodce Prahou. Zero client JS.',
+    }
+  : {
+      footerCopy: '© 2026 Specialty Coffee Guide & Prague Index. Zero client JS.',
+    };
+---
+
+<!doctype html>
+<html lang={lang} class="h-full bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- SEO Meta Tags -->
+    <title>{title} | {lang === 'cs' ? 'Káva & Praha' : 'Specialty Coffee'}</title>
+    <meta name="description" content={description} />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- hreflang for Search Engines and AI Crawlers (GEO / i18n) -->
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="cs" href={csUrl} />
+    <link rel="alternate" hreflang="x-default" href={enUrl} />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={image} />
+    <meta property="og:locale" content={lang === 'cs' ? 'cs_CZ' : 'en_US'} />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={canonicalUrl} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={image} />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Custom Head Slot (for Schema.org JSON-LD and page meta) -->
+    <slot name="head" />
+  </head>
+  <body class="flex min-h-full flex-col font-sans">
+    <!-- Subtle top glow -->
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+      <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-gradient-to-tr from-indigo-600/15 via-purple-600/10 to-transparent blur-[120px] rounded-full"></div>
+    </div>
+
+    <!-- Header with Language Switcher -->
+    <Header lang={lang} currentPath={normalizedPath} />
+
+    <!-- Main Content -->
+    <main class="flex-1">
+      <slot />
+    </main>
+
+    <!-- Minimalist Footer -->
+    <footer class="mt-20 border-t border-slate-800/70 bg-slate-950/40 py-8">
+      <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 sm:flex-row text-xs text-slate-400">
+        <p>{nav.footerCopy}</p>
+        <div class="flex items-center gap-4">
+          <a href="/llms.txt" class="hover:text-slate-200 transition">
+            llms.txt
+          </a>
+          <span class="text-slate-700">•</span>
+          <a href="/robots.txt" class="hover:text-slate-200 transition">
+            robots.txt
+          </a>
+          <span class="text-slate-700">•</span>
+          <a href="/sitemap-index.xml" class="hover:text-slate-200 transition">
+            Sitemap
+          </a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

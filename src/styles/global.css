@@ -1,0 +1,50 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Стилизация адаптивных Markdown-таблиц в блоках prose */
+.prose table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(51 65 85 / 0.7);
+  margin-top: 1.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.prose table thead {
+  background-color: rgb(30 41 59 / 0.8);
+}
+
+.prose table th {
+  padding: 0.875rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(241 245 249);
+  text-align: left;
+  border-bottom: 1px solid rgb(51 65 85 / 0.7);
+  white-space: nowrap;
+}
+
+.prose table td {
+  padding: 0.875rem 1.25rem;
+  font-size: 0.875rem;
+  color: rgb(203 213 225);
+  border-bottom: 1px solid rgb(30 41 59 / 0.5);
+  white-space: nowrap;
+}
+
+.prose table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prose table tbody tr:hover {
+  background-color: rgb(30 41 59 / 0.35);
+}

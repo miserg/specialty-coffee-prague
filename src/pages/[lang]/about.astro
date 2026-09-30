@@ -1,0 +1,71 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  return [
+    { params: { lang: 'en' } },
+    { params: { lang: 'cs' } },
+  ];
+}
+
+const { lang } = Astro.params as { lang: 'en' | 'cs' };
+
+const t = lang === 'cs'
+  ? {
+      title: 'O projektu a autorovi',
+      badge: '☕ Kávová architektura & AI',
+      heading: 'O projektu (About)',
+      desc: 'Znalostní báze o výběrové kávě postavená na technologiích Astro SSG, Zero-JS a plné podpoře AI vyhledávačů.',
+      p1: 'Tento portál slouží jako otevřený zdroj pro baristy, kávové nadšence a AI agenty (Perplexity, ChatGPT, Claude). Všechny stránky jsou staticky kompilovány bez jakéhokoliv klientského JavaScriptu.',
+      techHeading: 'Technologické principy',
+      f1: 'Astro i18n se striktními prefixy /en a /cs pro dokonalou GEO izolaci.',
+      f2: 'Schema.org JSON-LD s atributem inLanguage (en-US / cs-CZ) a schématy HowTo, Article a Person.',
+      f3: 'Indexy robots.txt a llms.txt pro snadné čtení a vektorové indexování jazykovými modely.',
+      f4: 'Validace datových kolekcí pomocí Zod schémat.',
+    }
+  : {
+      title: 'About the Project & Authors',
+      badge: '☕ Coffee Architecture & AI',
+      heading: 'About the Project',
+      desc: 'Specialty coffee knowledge base powered by Astro SSG, Zero-JS by default, and structured RAG data for AI search crawlers.',
+      p1: 'This portal serves as an open technical resource for baristas, coffee travelers, and AI agents (Perplexity, ChatGPT, Claude). Every page is statically generated without any client-side JavaScript.',
+      techHeading: 'Core Architectural Pillars',
+      f1: 'Native Astro i18n with strict /en and /cs routing for complete GEO isolation.',
+      f2: 'Schema.org JSON-LD with inLanguage (en-US / cs-CZ), HowTo, Article, and Person entities.',
+      f3: 'Standardized robots.txt and llms.txt manifests for seamless LLM retrieval.',
+      f4: 'Type-safe content collections backed by Zod schemas.',
+    };
+---
+
+<BaseLayout title={t.title} lang={lang}>
+  <div class="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+    <header class="mb-10">
+      <div class="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-400 mb-3">
+        <span>{t.badge}</span>
+      </div>
+      <h1 class="text-3xl font-extrabold text-white sm:text-5xl font-['Outfit']">
+        {t.heading}
+      </h1>
+      <p class="mt-4 text-xl text-slate-300 leading-relaxed">
+        {t.desc}
+      </p>
+    </header>
+
+    <div class="prose prose-invert prose-indigo max-w-none">
+      <p>{t.p1}</p>
+      <h2>{t.techHeading}</h2>
+      <ul>
+        <li>{t.f1}</li>
+        <li>{t.f2}</li>
+        <li>{t.f3}</li>
+        <li>{t.f4}</li>
+      </ul>
+      <h2>AI Crawler Manifests</h2>
+      <ul>
+        <li><a href="/robots.txt">robots.txt</a> — Unrestricted bot rules for GPTBot, ClaudeBot, PerplexityBot.</li>
+        <li><a href="/llms.txt">llms.txt</a> — Structured LLM index for English and Czech documentation.</li>
+        <li><a href="/sitemap-index.xml">sitemap-index.xml</a> — Multi-language XML sitemap.</li>
+      </ul>
+    </div>
+  </div>
+</BaseLayout>

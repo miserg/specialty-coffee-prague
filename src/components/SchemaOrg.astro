@@ -1,0 +1,198 @@
+---
+export interface PersonSchema {
+  type?: 'Person';
+  name: string;
+  url?: string;
+  sameAs?: string[];
+  jobTitle?: string;
+  image?: string;
+}
+
+export interface ArticleSchema {
+  type: 'Article';
+  title: string;
+  description?: string;
+  pubDate: Date | string;
+  modDate?: Date | string;
+  author?: PersonSchema | string;
+  image?: string;
+  url?: string;
+  tags?: string[];
+  lang?: 'en' | 'cs';
+}
+
+export interface HowToStep {
+  name?: string;
+  text: string;
+  url?: string;
+  image?: string;
+}
+
+export interface HowToSchema {
+  type: 'HowTo';
+  name: string;
+  description?: string;
+  prepTime?: string;
+  cookTime?: string;
+  totalTime?: string;
+  tool?: string[]; // Оборудование
+  supply?: string[]; // Ингредиенты / материалы
+  steps: (string | HowToStep)[];
+  author?: PersonSchema | string;
+  image?: string;
+  url?: string;
+  lang?: 'en' | 'cs';
+}
+
+export type Props =
+  | ((ArticleSchema | HowToSchema | PersonSchema | { type: 'Custom'; schema: Record<string, unknown> }) & {
+      schemaType?: string;
+      lang?: 'en' | 'cs';
+    });
+
+const props = Astro.props as any;
+const lang = props.lang || 'en';
+const schemaLang = lang === 'cs' ? 'cs-CZ' : 'en-US';
+const effectiveType = props.schemaType || props.type || 'Article';
+
+// Конвертер времени в формат ISO 8601 Duration (PT5M, PT1H30M)
+function toIsoDuration(str?: string): string | undefined {
+  if (!str) return undefined;
+  const trimmed = str.trim();
+  if (trimmed.startsWith('P')) return trimmed;
+
+  let hours = 0;
+  let minutes = 0;
+
+  const hourMatch = trimmed.match(/(\d+)\s*(?:час|ч|hour|h)/i);
+  if (hourMatch) hours = parseInt(hourMatch[1], 10);
+
+  const minMatch = trimmed.match(/(\d+)\s*(?:минут|мин|min|m)/i);
+  if (minMatch) minutes = parseInt(minMatch[1], 10);
+
+  if (hours > 0 && minutes > 0) return `PT${hours}H${minutes}M`;
+  if (hours > 0) return `PT${hours}H`;
+  if (minutes > 0) return `PT${minutes}M`;
+
+  const numOnly = trimmed.match(/^(\d+)$/);
+  if (numOnly) return `PT${numOnly[1]}M`;
+
+  return undefined;
+}
+
+// Форматирование сущности Person с поддержкой sameAs
+function formatPerson(person?: PersonSchema | string) {
+  if (!person) return undefined;
+  if (typeof person === 'string') {
+    return {
+      '@type': 'Person',
+      name: person,
+      sameAs: [],
+    };
+  }
+  return {
+    '@type': 'Person',
+    name: person.name,
+    ...(person.url && { url: person.url }),
+    sameAs: person.sameAs ?? [],
+    ...(person.jobTitle && { jobTitle: person.jobTitle }),
+    ...(person.image && { image: person.image }),
+  };
+}
+
+let jsonLd: Record<string, unknown> = {};
+
+if (effectiveType === 'Article') {
+  const authorData = formatPerson(props.author);
+  jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    inLanguage: schemaLang,
+    headline: props.title || props.name || '',
+    ...(props.description && { description: props.description }),
+    datePublished: props.pubDate ? new Date(props.pubDate).toISOString() : new Date().toISOString(),
+    ...(props.modDate && { dateModified: new Date(props.modDate).toISOString() }),
+    ...(authorData && { author: authorData }),
+    ...(props.image && { image: props.image }),
+    ...(props.url && {
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': props.url,
+      },
+    }),
+    ...(props.tags && props.tags.length > 0 && { keywords: props.tags.join(', ') }),
+  };
+} else if (effectiveType === 'HowTo') {
+  const prepTimeIso = toIsoDuration(props.prepTime);
+  const cookTimeIso = toIsoDuration(props.cookTime);
+  const totalTimeIso = toIsoDuration(props.totalTime);
+  const authorData = formatPerson(props.author);
+
+  jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    inLanguage: schemaLang,
+    name: props.name || props.title || '',
+    ...(props.description && { description: props.description }),
+    ...(prepTimeIso && { prepTime: prepTimeIso }),
+    ...(cookTimeIso && { cookTime: cookTimeIso }),
+    ...(totalTimeIso && { totalTime: totalTimeIso }),
+    ...(props.tool &&
+      props.tool.length > 0 && {
+        tool: props.tool.map((t: string) => ({
+          '@type': 'HowToTool',
+          name: t,
+        })),
+      }),
+    ...(props.supply &&
+      props.supply.length > 0 && {
+        supply: props.supply.map((s: string) => ({
+          '@type': 'HowToSupply',
+          name: s,
+        })),
+      }),
+    step: (props.steps || []).map((step: any, idx: number) => {
+      if (typeof step === 'string') {
+        return {
+          '@type': 'HowToStep',
+          position: idx + 1,
+          text: step,
+        };
+      }
+      return {
+        '@type': 'HowToStep',
+        position: idx + 1,
+        name: step.name || `Шаг ${idx + 1}`,
+        text: step.text,
+        ...(step.url && { url: step.url }),
+        ...(step.image && { image: step.image }),
+      };
+    }),
+    ...(authorData && { author: authorData }),
+    ...(props.image && { image: props.image }),
+    ...(props.url && {
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': props.url,
+      },
+    }),
+  };
+} else if (effectiveType === 'Person') {
+  jsonLd = {
+    '@context': 'https://schema.org',
+    inLanguage: schemaLang,
+    ...formatPerson(props),
+  };
+} else if (effectiveType === 'Custom') {
+  jsonLd = {
+    '@context': 'https://schema.org',
+    inLanguage: schemaLang,
+    ...props.schema,
+  };
+}
+
+const jsonLdString = JSON.stringify(jsonLd, null, 2);
+---
+
+<!-- Schema.org JSON-LD with inLanguage for GEO & Search Crawlers -->
+<script type="application/ld+json" is:inline set:html={jsonLdString} />

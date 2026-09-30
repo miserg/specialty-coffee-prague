@@ -1,0 +1,211 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import SchemaOrg from '../../../components/SchemaOrg.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const recipes = await getCollection('recipes');
+  return recipes.map((entry) => {
+    const cleanId = entry.id.replace(/\.[^/.]+$/, '');
+    const [lang, ...slug] = cleanId.split('/');
+    return {
+      params: { lang, slug: slug.join('/') },
+      props: { entry },
+    };
+  });
+}
+
+const { entry } = Astro.props;
+const { lang } = Astro.params as { lang: 'en' | 'cs' };
+const { Content, headings } = await render(entry);
+
+// Формируем оглавление (TOC) для H2 и H3
+const toc = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+
+const currentUrl = new URL(Astro.url.pathname, Astro.site ?? 'https://example.com').toString();
+
+const t = lang === 'cs'
+  ? {
+      backBtn: '← Všechny recepty',
+      servings: 'porce',
+      diff: 'Obtížnost:',
+      time: 'Čas:',
+      blufTitle: 'Rychlá odpověď (Quick Answer / BLUF)',
+      tocTitle: 'Obsah článku (Table of Contents)',
+      equipmentTitle: 'Potřebné vybavení',
+      ingredientsTitle: 'Ingredience',
+    }
+  : {
+      backBtn: '← All Recipes',
+      servings: 'serving(s)',
+      diff: 'Difficulty:',
+      time: 'Total:',
+      blufTitle: 'Quick Answer / BLUF',
+      tocTitle: 'Table of Contents',
+      equipmentTitle: 'Required Equipment',
+      ingredientsTitle: 'Ingredients',
+    };
+---
+
+<BaseLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  lang={lang}
+  canonicalSlug={entry.data.canonicalSlug}
+>
+  <!-- Schema.org HowTo with inLanguage -->
+  <SchemaOrg
+    slot="head"
+    type="HowTo"
+    lang={lang}
+    name={entry.data.title}
+    description={entry.data.description}
+    prepTime={entry.data.prepTime}
+    cookTime={entry.data.cookTime}
+    tool={entry.data.equipment}
+    supply={entry.data.ingredients}
+    steps={entry.data.ingredients.map((item: string, i: number) => ({
+      name: `Step ${i + 1}`,
+      text: item,
+    }))}
+    author={{
+      name: lang === 'cs' ? 'Šéf-barista Alex' : 'Head Barista Alex',
+      sameAs: [
+        'https://t.me/barista_artisan',
+        'https://youtube.com/@coffee_tea_master',
+      ],
+      jobTitle: 'Coffee Roaster & Q-Grader',
+    }}
+    url={currentUrl}
+  />
+
+  <div class="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+    <!-- Back to recipes link -->
+    <a
+      href={`/${lang}/recipes`}
+      class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-purple-400 hover:text-purple-300 mb-8 transition"
+    >
+      {t.backBtn}
+    </a>
+
+    <!-- Header Block -->
+    <header class="mb-10">
+      <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 mb-4">
+        <span class="inline-flex items-center rounded-full bg-purple-500/10 px-3 py-1 font-medium text-purple-400 border border-purple-500/20 capitalize">
+          {t.diff} {entry.data.difficulty}
+        </span>
+        <span>•</span>
+        <span>{entry.data.servings} {t.servings}</span>
+        <span>•</span>
+        <span>⏱ {entry.data.prepTime} + {entry.data.cookTime}</span>
+      </div>
+
+      <h1 class="text-3xl font-extrabold text-white sm:text-5xl font-['Outfit'] tracking-tight leading-tight">
+        {entry.data.title}
+      </h1>
+
+      <p class="mt-4 text-xl text-slate-300 leading-relaxed">
+        {entry.data.description}
+      </p>
+    </header>
+
+    <!-- Quick Answer / BLUF -->
+    {
+      entry.data.quickAnswer && (
+        <section class="mb-12 relative overflow-hidden rounded-2xl border border-purple-500/40 bg-gradient-to-br from-purple-950/60 via-slate-900/80 to-slate-950 p-6 sm:p-7 shadow-xl shadow-purple-950/30">
+          <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-purple-500/10 blur-2xl pointer-events-none"></div>
+          <div class="flex items-start gap-4">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-purple-400">
+                  {t.blufTitle}
+                </span>
+                <span class="rounded-full bg-purple-500/20 px-2 py-0.5 text-[10px] font-semibold text-purple-300">
+                  AI Ready
+                </span>
+              </div>
+              <p class="text-base sm:text-lg font-medium text-slate-100 leading-relaxed">
+                {entry.data.quickAnswer}
+              </p>
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    <!-- Table of Contents (TOC) -->
+    {
+      toc.length > 0 && (
+        <nav aria-label="Table of Contents" class="mb-12 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-sm">
+          <div class="flex items-center gap-2.5 mb-4 text-sm font-bold uppercase tracking-wider text-slate-200">
+            <svg class="h-4 w-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+            </svg>
+            <span>{t.tocTitle}</span>
+          </div>
+
+          <ul class="space-y-2 text-sm">
+            {toc.map((heading) => (
+              <li class:list={[heading.depth === 3 ? 'ml-5 text-xs text-slate-400' : 'font-medium text-slate-300']}>
+                <a
+                  href={`#${heading.slug}`}
+                  class="inline-block transition hover:text-purple-400 hover:underline hover:underline-offset-4"
+                >
+                  {heading.depth === 3 && <span class="text-purple-500 mr-1.5">•</span>}
+                  {heading.text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+
+    <!-- Equipment & Ingredients -->
+    <div class="mb-10 grid gap-6 sm:grid-cols-2">
+      {entry.data.equipment?.length > 0 && (
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+          <h2 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+            <span>⚙️ {t.equipmentTitle}</span>
+          </h2>
+          <ul class="space-y-1.5 text-sm text-slate-300">
+            {entry.data.equipment.map((tool: string) => (
+              <li class="flex items-center gap-2">
+                <span class="text-purple-400">✓</span>
+                <span>{tool}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {entry.data.ingredients?.length > 0 && (
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+          <h2 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+            <span>☕ {t.ingredientsTitle}</span>
+          </h2>
+          <ul class="space-y-1.5 text-sm text-slate-300">
+            {entry.data.ingredients.map((item: string) => (
+              <li class="flex items-center gap-2">
+                <span class="text-purple-400 font-bold">•</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+
+    <!-- Main Markdown Content with Responsive Tables -->
+    <div class="border-t border-slate-800/80 pt-8">
+      <article class="prose prose-invert prose-purple max-w-none prose-headings:font-['Outfit'] prose-headings:tracking-tight prose-a:text-purple-400 hover:prose-a:text-purple-300">
+        <Content />
+      </article>
+    </div>
+  </div>
+</BaseLayout>

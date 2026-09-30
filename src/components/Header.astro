@@ -1,0 +1,121 @@
+---
+interface Props {
+  lang: 'en' | 'cs';
+  currentPath?: string;
+}
+
+const { lang, currentPath = '' } = Astro.props;
+const pathname = Astro.url.pathname;
+
+// Вычисляем чистый путь без префикса локали (/en или /cs)
+let cleanPath = currentPath || pathname.replace(/^\/(en|cs)(\/|$)/, '/');
+if (!cleanPath.startsWith('/')) {
+  cleanPath = '/' + cleanPath;
+}
+const normalizedPath = cleanPath === '/' ? '' : cleanPath;
+
+const nav = lang === 'cs'
+  ? {
+      home: 'Domů',
+      homeLink: '/cs',
+      recipes: 'Recepty',
+      recipesLink: '/cs/recipes',
+      cafes: 'Kavárny',
+      cafesLink: '/cs/cafes',
+      about: 'O projektu',
+      aboutLink: '/cs/about',
+    }
+  : {
+      home: 'Home',
+      homeLink: '/en',
+      recipes: 'Recipes',
+      recipesLink: '/en/recipes',
+      cafes: 'Cafes',
+      cafesLink: '/en/cafes',
+      about: 'About',
+      aboutLink: '/en/about',
+    };
+---
+
+<!-- Minimalist Header with Language Switcher -->
+<header class="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-md">
+  <div class="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 py-4">
+    <!-- Logo -->
+    <a href={nav.homeLink} class="group flex items-center gap-2.5 transition">
+      <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md shadow-indigo-500/20">
+        <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <span class="text-lg font-bold tracking-tight text-white group-hover:text-indigo-400 transition font-['Outfit']">
+        Coffee<span class="text-indigo-400">{lang === 'cs' ? 'Praha' : 'Guide'}</span>
+      </span>
+    </a>
+
+    <!-- Navigation Links -->
+    <nav class="flex items-center gap-1 sm:gap-2">
+      <a
+        href={nav.recipesLink}
+        class:list={[
+          'rounded-lg px-3 py-1.5 text-sm font-medium transition',
+          pathname.includes('/recipes')
+            ? 'bg-slate-800 text-white shadow-sm'
+            : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+        ]}
+      >
+        {nav.recipes}
+      </a>
+      <a
+        href={nav.cafesLink}
+        class:list={[
+          'rounded-lg px-3 py-1.5 text-sm font-medium transition',
+          pathname.includes('/cafes')
+            ? 'bg-slate-800 text-white shadow-sm'
+            : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+        ]}
+      >
+        {nav.cafes}
+      </a>
+      <a
+        href={nav.aboutLink}
+        class:list={[
+          'rounded-lg px-3 py-1.5 text-sm font-medium transition',
+          pathname.includes('/about')
+            ? 'bg-slate-800 text-white shadow-sm'
+            : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+        ]}
+      >
+        {nav.about}
+      </a>
+
+      <!-- Language Switcher EN | CS -->
+      <div class="ml-2 sm:ml-4 flex items-center rounded-lg border border-slate-800 bg-slate-900/80 p-0.5 text-xs font-semibold">
+        <a
+          href={`/en${normalizedPath}`}
+          class:list={[
+            'rounded-md px-2.5 py-1 transition',
+            lang === 'en'
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'text-slate-400 hover:text-slate-200'
+          ]}
+          aria-label="Switch to English"
+        >
+          EN
+        </a>
+        <span class="text-slate-700">|</span>
+        <a
+          href={`/cs${normalizedPath}`}
+          class:list={[
+            'rounded-md px-2.5 py-1 transition',
+            lang === 'cs'
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'text-slate-400 hover:text-slate-200'
+          ]}
+          aria-label="Přepnout do češtiny"
+        >
+          CS
+        </a>
+      </div>
+    </nav>
+  </div>
+</header>

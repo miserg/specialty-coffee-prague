@@ -1,0 +1,37 @@
+---
+// Root index redirect page to default locale /en/
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="refresh" content="0;url=/en/" />
+    <title>Specialty Coffee Guide & Prague Index</title>
+    <link rel="canonical" href="https://example.com/en/" />
+    <script is:inline>
+      window.location.replace('/en/');
+    </script>
+  </head>
+  <body class="bg-slate-950 text-slate-100 flex min-h-screen items-center justify-center p-6 text-center font-sans">
+    <div class="max-w-md rounded-2xl border border-slate-800 bg-slate-900/60 p-8 shadow-2xl">
+      <h1 class="text-2xl font-bold mb-4">Specialty Coffee Guide & Prague Index</h1>
+      <p class="text-slate-400 mb-6 text-sm">Redirecting to <a href="/en/" class="text-indigo-400 underline">/en/</a>...</p>
+      <div class="flex justify-center gap-4">
+        <a
+          href="/en/"
+          class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-indigo-500 transition"
+        >
+          English (EN)
+        </a>
+        <a
+          href="/cs/"
+          class="rounded-xl border border-slate-700 bg-slate-800 px-5 py-2.5 text-sm font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition"
+        >
+          Čeština (CS)
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+# Specialty Coffee Knowledge Base & Prague Guide
+
+> Structured RAG index for AI search agents (Perplexity, ChatGPT, Claude).
+
+## English Documentation
+- [Brewing Guides & Grinder Settings](/en/recipes)
+- [Prague Specialty Cafes Directory](/en/cafes)
+- [About & Author Profiles](/en/about)
+
+## Česká Dokumentace (Czech Index)
+- [Recepty a nastavení mletí](/cs/recipes)
+- [Průvodce výběrovou kávou v Praze](/cs/cafes)
+- [O projektu a autorovi](/cs/about)
