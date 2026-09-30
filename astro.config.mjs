@@ -5,7 +5,7 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://specialty-coffee-prague.pages.dev',
+  site: 'https://specialty-coffee-prague.spbrabota78.workers.dev',
   output: 'static',
   prerenderConflictBehavior: 'ignore',
   legacy: {

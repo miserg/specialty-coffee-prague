@@ -13,5 +13,5 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://example.com/sitemap-index.xml
-Sitemap: https://example.com/sitemap.xml
+Sitemap: https://specialty-coffee-prague.spbrabota78.workers.dev/sitemap-index.xml
+Sitemap: https://specialty-coffee-prague.spbrabota78.workers.dev/sitemap.xml
